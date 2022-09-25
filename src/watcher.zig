@@ -7,9 +7,13 @@ const c = @cImport({
 const flag = @import("flag.zig");
 const Loop = @import("loop.zig").Loop;
 
-pub const Watcher = extern struct {
+pub const Io = makeWatcher(c.struct_ev_io);
+
+fn makeWatcher(comptime T: type) type {
+const NameSpace = struct {
+const Watcher = extern struct {
     // field
-    handle: c.struct_ev_io,
+    handle: T,
     loop: *c.struct_ev_loop,
 
     // typedef
@@ -19,14 +23,14 @@ pub const Watcher = extern struct {
     // callback helper
     const cb_t = *const fn(*Watcher, Event) void;
     const native_cb_t = ?*const fn (
-        ?*c.struct_ev_loop, ?*c.struct_ev_io, c_int
+        ?*c.struct_ev_loop, ?*T, c_int
     ) callconv(.C) void;
 
     fn makecb(comptime cb: cb_t) native_cb_t {
         const F =  struct {
             fn callback(
                 _: ?*c.struct_ev_loop,
-                watcher: ?*c.struct_ev_io,
+                watcher: ?*T,
                 events: c_int
             ) callconv(.C) void {
                 const w = @ptrCast(*Watcher, watcher);
@@ -37,13 +41,12 @@ pub const Watcher = extern struct {
         return F.callback;
     }
 
-
-    // method
     const Self = @This();
+    // method
     pub fn new(loop: Loop, fd: c_int, comptime f: Event) Self {
         const hint = comptime flag.Event.into_int(f) | flag.Event.Table._IoFdSet;
 
-        var handle: c.struct_ev_io = undefined;
+        var handle: T = undefined;
         @ptrCast(*c.ev_watcher, &handle).active = 0;
         @ptrCast(*c.ev_watcher, &handle).pending = 0;
         @ptrCast(*c.ev_watcher, &handle).priority = 0;
@@ -83,11 +86,11 @@ pub const Watcher = extern struct {
     }
 
     pub fn start(self: *Self) void {
-        c.ev_io_start(self.loop, @ptrCast(*c.struct_ev_io, self));
+        c.ev_io_start(self.loop, @ptrCast(*T, self));
     }
 
     pub fn stop(self: *Self) void {
-        c.ev_io_stop(self.loop, @ptrCast(*c.struct_ev_io, self));
+        c.ev_io_stop(self.loop, @ptrCast(*T, self));
     }
 
     pub fn isActive(self: *const Self) bool {
@@ -102,4 +105,7 @@ pub const Watcher = extern struct {
         const hint = flag.Event.into_int(f);
         c.ev_feed_event(self.loop, self.asWatcher(), hint);
     }
+    };
 };
+return NameSpace.Watcher;
+}

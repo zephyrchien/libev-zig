@@ -1,9 +1,9 @@
 const std = @import("std");
 const ev = @import("ev");
 const Loop = ev.Loop;
-const Watcher = ev.Watcher;
+const IoWatcher = ev.IoWatcher;
 
-fn cb(w: *Watcher, e: Watcher.Event) void {
+fn cb(w: *IoWatcher, e: IoWatcher.Event) void {
     w.stop();
     std.debug.assert(e.Read);
     std.debug.print("stdin is ready!\n", .{});
@@ -11,7 +11,7 @@ fn cb(w: *Watcher, e: Watcher.Event) void {
 
 pub fn main() !void {
     const loop = Loop.default(.{}, .{}).?;
-    var watcher = Watcher.new(loop, 0, .{.Read = true});
+    var watcher = IoWatcher.new(loop, 0, .{.Read = true});
     watcher.setCallback(cb);
     watcher.start();
     _ = loop.run(.{});
