@@ -29,6 +29,14 @@ pub fn build(b: *std.build.Builder) !void {
     lib.install();
 
     // examples
+    const bin_version = b.addExecutable("version", "examples/version.zig");
+    bin_version.setBuildMode(mode);
+    bin_version.setTarget(target);
+    bin_version.addPackage(pkg_libev);
+    bin_version.linkLibC();
+    bin_version.linkSystemLibrary("ev");
+    bin_version.install();
+
     const bin_stdin = b.addExecutable("stdin", "examples/stdin.zig");
     bin_stdin.setBuildMode(mode);
     bin_stdin.setTarget(target);
