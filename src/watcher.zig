@@ -11,16 +11,8 @@ pub const Io = makeWatcher(c.struct_ev_io);
 
 fn makeWatcher(comptime T: type) type {
 const NameSpace = struct {
-const Watcher = extern struct {
-    // field
-    handle: T,
-    loop: *c.struct_ev_loop,
-
-    // typedef
-    pub const Event = flag.Event.set_t;
-    pub const Callback = cb_t;
-
-    // callback helper
+const Helper = struct {
+    const Event = flag.Event.set_t;
     const cb_t = *const fn(*Watcher, Event) void;
     const native_cb_t = ?*const fn (
         ?*c.struct_ev_loop, ?*T, c_int
@@ -41,30 +33,65 @@ const Watcher = extern struct {
         return F.callback;
     }
 
-    const Self = @This();
-    // method
-    pub fn new(loop: Loop, fd: c_int, comptime f: Event) Self {
-        const hint = comptime flag.Event.into_int(f) | flag.Event.Table._IoFdSet;
-
+    fn init() T {
         var handle: T = undefined;
         @ptrCast(*c.ev_watcher, &handle).active = 0;
         @ptrCast(*c.ev_watcher, &handle).pending = 0;
         @ptrCast(*c.ev_watcher, &handle).priority = 0;
+        return handle;
+    }
+
+    fn spec() type {
+        return switch (T) {
+            c.struct_ev_io => IoSpec,
+            else => @compileError("bad type: " ++ @typeName(T)),
+        };
+    }
+};
+// spec
+const IoSpec = struct {
+    const Event = flag.Event.set_t;
+    pub fn new(loop: Loop, fd: c_int, comptime f: Event) Watcher {
+        const hint = comptime flag.Event.into_int(f) | flag.Event.Table._IoFdSet;
+        var handle = Helper.init();
         handle.fd = fd;
         handle.events = hint;
-
-        return Self {
+        return Watcher {
             .loop = loop.native(),
             .handle = handle,
         };
     }
+};
 
+// generic
+const Watcher = extern struct {
+    // field
+    handle: T,
+    loop: *c.struct_ev_loop,
+
+    // typedef
+    pub const Event = flag.Event.set_t;
+    pub const Callback = Helper.cb_t;
+
+    // spec
+    pub usingnamespace Helper.spec();
+
+    // method
+    const Self = @This();
     pub fn asWatcher(self: *Self) *c.struct_ev_watcher {
         return @ptrCast(*c.struct_ev_watcher, self);
     }
 
     pub fn asConstWatcher(self: *const Self) *const c.struct_ev_watcher {
         return @ptrCast(*const c.struct_ev_watcher, self);
+    }
+
+    pub fn asSpecWatcher(self: *Self) *T {
+        return @ptrCast(*T, self);
+    }
+
+    pub fn asConstSpecWatcher(self: *const Self) *const T {
+        return @ptrCast(*const T, self);
     }
 
     pub fn userData(self: *const Self) ?*anyopaque {
@@ -76,7 +103,7 @@ const Watcher = extern struct {
     }
 
     pub fn setCallback(self: *Self, comptime cb: Callback) void {
-        const native_cb = comptime makecb(cb);
+        const native_cb = comptime Helper.makecb(cb);
         self.handle.cb = native_cb;
         // memmove is used here to avoid strict aliasing violations
         _ = c.memmove(
@@ -86,11 +113,43 @@ const Watcher = extern struct {
     }
 
     pub fn start(self: *Self) void {
-        c.ev_io_start(self.loop, @ptrCast(*T, self));
+        const l = self.loop;
+        const ptr = self.asSpecWatcher();
+        switch (T) {
+            c.struct_ev_io => c.ev_io_start(l, ptr),
+            c.struct_ev_timer => c.ev_timer_start(l, ptr),
+            c.struct_ev_periodic => c.ev_periodic_start(l, ptr),
+            c.struct_ev_signal => c.ev_signal_start(l, ptr),
+            c.struct_ev_child => c.ev_child_start(l, ptr),
+            c.struct_ev_stat => c.ev_stat_start(l, ptr),
+            c.struct_ev_idle => c.ev_idle_start(l, ptr),
+            c.struct_ev_prepare => c.ev_prepare_start(l, ptr),
+            c.struct_ev_check => c.ev_check_start(l, ptr),
+            c.struct_ev_embed => c.ev_embed_start(l, ptr),
+            c.struct_ev_fork => c.ev_fork_start(l, ptr),
+            c.struct_ev_async => c.ev_async_start(l, ptr),
+            else => @compileError("bad type: " ++ @typeName(T)),
+        }
     }
 
     pub fn stop(self: *Self) void {
-        c.ev_io_stop(self.loop, @ptrCast(*T, self));
+        const l = self.loop;
+        const ptr = self.asSpecWatcher();
+        switch (T) {
+            c.struct_ev_io => c.ev_io_stop(l, ptr),
+            c.struct_ev_timer => c.ev_timer_stop(l, ptr),
+            c.struct_ev_periodic => c.ev_periodic_stop(l, ptr),
+            c.struct_ev_signal => c.ev_signal_stop(l, ptr),
+            c.struct_ev_child => c.ev_child_stop(l, ptr),
+            c.struct_ev_stat => c.ev_stat_stop(l, ptr),
+            c.struct_ev_idle => c.ev_idle_stop(l, ptr),
+            c.struct_ev_prepare => c.ev_prepare_stop(l, ptr),
+            c.struct_ev_check => c.ev_check_stop(l, ptr),
+            c.struct_ev_embed => c.ev_embed_stop(l, ptr),
+            c.struct_ev_fork => c.ev_fork_stop(l, ptr),
+            c.struct_ev_async => c.ev_async_stop(l, ptr),
+            else => @compileError("bad type: " ++ @typeName(T)),
+        }
     }
 
     pub fn isActive(self: *const Self) bool {
@@ -105,7 +164,7 @@ const Watcher = extern struct {
         const hint = flag.Event.into_int(f);
         c.ev_feed_event(self.loop, self.asWatcher(), hint);
     }
-    };
+};
 };
 return NameSpace.Watcher;
 }
