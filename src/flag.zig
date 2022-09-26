@@ -15,7 +15,7 @@ pub const Backend = bitset.make(.{
     .{ "IoUring",      c.EVBACKEND_IOURING,     },
     .{ "All",          c.EVBACKEND_ALL,         },
     .{ "Mask",         c.EVBACKEND_MASK,        },
-}, c_int);
+}, c_uint);
 
 pub const Loop = bitset.make(.{
     .{ "Auto",         c.EVFLAG_AUTO,           },
@@ -25,7 +25,7 @@ pub const Loop = bitset.make(.{
     .{ "SignalFd",     c.EVFLAG_SIGNALFD,       },
     .{ "NoSigMask",    c.EVFLAG_NOSIGMASK,      },
     .{ "NoTimerFd",    c.EVFLAG_NOTIMERFD,      },
-}, c_int);
+}, c_uint);
 
 pub const Event = bitset.make(.{
     .{ "Undef",        c.EV_UNDEF,              },
@@ -60,4 +60,3 @@ pub const Break = bitset.make(.{
     .{ "One",          c.EVBREAK_ONE,           },
     .{ "All",          c.EVBREAK_ALL,           },
 }, c_int);
-
