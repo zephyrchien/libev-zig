@@ -1,6 +1,5 @@
 const std = @import("std");
 const c = @cImport({
-    @cInclude("string.h");
     @cInclude("ev.h"); 
 });
 

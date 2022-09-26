@@ -1,6 +1,5 @@
 const std = @import("std");
 const c = @cImport({
-    @cInclude("string.h");
     @cInclude("ev.h"); 
 });
 
@@ -163,11 +162,12 @@ const Watcher = extern struct {
     pub fn setCallback(self: *Self, comptime cb: Callback) void {
         const native_cb = comptime Helper.makecb(cb);
         self.handle.cb = native_cb;
+
         // memmove is used here to avoid strict aliasing violations
-        _ = c.memmove(
-        &(self.asWatcher().cb),
-        &self.handle.cb,
-        @sizeOf(@TypeOf(self.handle.cb)));
+        @memcpy(
+            @ptrCast([*]u8, &(self.asWatcher().cb)),
+            @ptrCast([*]const u8, &self.handle.cb),
+            @sizeOf(@TypeOf(self.handle.cb)));
     }
 
     pub fn start(self: *Self) void {
