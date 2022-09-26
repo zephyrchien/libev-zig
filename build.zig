@@ -36,4 +36,12 @@ pub fn build(b: *std.build.Builder) !void {
     bin_stdin.linkLibC();
     bin_stdin.linkSystemLibrary("ev");
     bin_stdin.install();
+
+    const bin_timer = b.addExecutable("timer", "examples/timer.zig");
+    bin_timer.setBuildMode(mode);
+    bin_timer.setTarget(target);
+    bin_timer.addPackage(pkg_libev);
+    bin_timer.linkLibC();
+    bin_timer.linkSystemLibrary("ev");
+    bin_timer.install();
 }

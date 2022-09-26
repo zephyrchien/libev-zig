@@ -6,16 +6,15 @@ const c = @cImport({
 
 const flag = @import("flag.zig");
 
+pub const Flag = flag.Loop.set_t;
+pub const Backend = flag.Backend.set_t;
+pub const Run = flag.Run.set_t;
+pub const Break = flag.Break.set_t;
+
 pub const Loop = struct {
     // field
     loop: *c.struct_ev_loop,
     
-    // typedef
-    pub const Flag = flag.Loop.set_t;
-    pub const Backend = flag.Backend.set_t;
-    pub const Run = flag.Run.set_t;
-    pub const Break = flag.Break.set_t;
-
     // method
     const Self = @This();
     pub fn native(self: Self) *c.struct_ev_loop {
