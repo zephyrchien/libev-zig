@@ -1,6 +1,4 @@
-const c = @cImport({
-    @cInclude("ev.h"); 
-});
+const c = @cImport(@cInclude("ev.h"));
 const flag = @import("flag.zig");
 const loop = @import("loop.zig");
 

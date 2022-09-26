@@ -1,11 +1,9 @@
+const c = @cImport(@cInclude("ev.h"));
 const std = @import("std");
-const c = @cImport({
-    @cInclude("ev.h"); 
-});
+const flag = @import("flag.zig");
 
 const Loop = @import("loop.zig").Loop;
 
-const flag = @import("flag.zig");
 pub const Event = flag.Event.set_t;
 
 pub const Io = makeWatcher(c.struct_ev_io);
@@ -32,6 +30,11 @@ const Helper = struct {
             }
         };
         return F.callback;
+    }
+
+    fn cbResume(w: *Watcher, _: Event) void {
+        w.stop();
+        resume @ptrCast(*anyframe, w.userData());
     }
 
     fn init(handle: *T) void {
@@ -208,6 +211,14 @@ const Watcher = extern struct {
             c.struct_ev_async => c.ev_async_stop(l, ptr),
             else => @compileError("bad type: " ++ @typeName(T)),
         }
+    }
+    
+    pub fn wait(self: *Self) callconv(.Async) void {
+        suspend {
+            self.setUserData(@frame());
+            self.setCallback(Helper.cbResume);
+        }
+        self.setUserData(null);
     }
 
     pub fn isActive(self: *const Self) bool {

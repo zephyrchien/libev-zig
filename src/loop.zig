@@ -1,8 +1,5 @@
+const c = @cImport(@cInclude("ev.h"));
 const std = @import("std");
-const c = @cImport({
-    @cInclude("ev.h"); 
-});
-
 const flag = @import("flag.zig");
 
 pub const Flag = flag.Loop.set_t;
@@ -48,6 +45,21 @@ pub const Loop = struct {
         }
     }
 
+    pub fn run(self: Self, comptime f: Run) bool {
+        const hint = comptime flag.Run.into_int(f);
+        return c.ev_run(self.loop, hint) != 0;
+    }
+
+    pub fn stop(self: Self, comptime f: Break) void {
+        const hint = comptime flag.Break.into_int(f);
+        c.ev_break(self.loop, hint);
+    }
+
+    pub fn blockOn(self: Self, comptime f: anyframe->void) void {
+        self.run(.{});
+        nosuspend await f;
+    }
+
     pub fn destroy(self: Self) void {
         c.ev_loop_destroy(self.loop);
     }
@@ -81,22 +93,12 @@ pub const Loop = struct {
         c.ev_now_update(self.loop);
     }
 
-    pub fn suspendCall(self: Self) void {
+    pub fn suspendLoop(self: Self) void {
         c.ev_suspend(self.loop);
     }
 
-    pub fn resumeCall(self: Self) void {
+    pub fn resumeLoop(self: Self) void {
         c.ev_resume(self.loop);
-    }
-
-    pub fn run(self: Self, comptime f: Run) bool {
-        const hint = comptime flag.Run.into_int(f);
-        return c.ev_run(self.loop, hint) != 0;
-    }
-
-    pub fn breakCall(self: Self, comptime f: Break) void {
-        const hint = comptime flag.Break.into_int(f);
-        c.ev_break(self.loop, hint);
     }
 
     pub fn ref(self: Self) void {

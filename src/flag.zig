@@ -1,7 +1,4 @@
-const c = @cImport({
-    @cInclude("string.h");
-    @cInclude("ev.h"); 
-});
+const c = @cImport(@cInclude("ev.h"));
 const bitset = @import("bitset");
 
 pub const Backend = bitset.make(.{
