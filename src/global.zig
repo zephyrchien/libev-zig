@@ -2,8 +2,8 @@ const c = @cImport(@cInclude("ev.h"));
 const flag = @import("flag.zig");
 const loop = @import("loop.zig");
 
-const alloc_cb_t = ?*const fn (?*anyopaque, c_long) callconv(.C) ?*anyopaque;
-const syserr_cb_t = ?*const fn ([*c]const u8) callconv(.C) void;
+const alloc_cb_t = fn (?*anyopaque, c_long) callconv(.C) ?*anyopaque;
+const syserr_cb_t = fn ([*c]const u8) callconv(.C) void;
 
 pub const Allocator = alloc_cb_t;
 pub const ErrHandler = syserr_cb_t;

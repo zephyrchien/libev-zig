@@ -25,7 +25,7 @@ pub const Loop = struct {
         };
 
         if (c.ev_default_loop(hint)) |loop| {
-            return . { .loop = loop };
+            return .{ .loop = loop };
         } else {
             return null;
         }

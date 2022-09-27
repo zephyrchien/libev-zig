@@ -12,8 +12,8 @@ pub const Timer = makeWatcher(c.struct_ev_timer);
 fn makeWatcher(comptime T: type) type {
 const NameSpace = struct {
 const Helper = struct {
-    const cb_t = *const fn(*Watcher, Event) void;
-    const native_cb_t = ?*const fn (
+    const cb_t = fn(*Watcher, Event) void;
+    const native_cb_t = fn (
         ?*c.struct_ev_loop, ?*T, c_int
     ) callconv(.C) void;
 
