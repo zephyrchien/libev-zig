@@ -53,12 +53,12 @@ pub fn build(b: *std.build.Builder) !void {
     bin_timer.linkSystemLibrary("ev");
     bin_timer.install();
 
-    // const bin_async_stdin = b.addExecutable("async_stdin", "examples/async_stdin.zig");
-    // b.use_stage1 = true;
-    // bin_async_stdin.setBuildMode(mode);
-    // bin_async_stdin.setTarget(target);
-    // bin_async_stdin.addPackage(pkg_libev);
-    // bin_async_stdin.linkLibC();
-    // bin_async_stdin.linkSystemLibrary("ev");
-    // bin_async_stdin.install();
+    const bin_async_stdin = b.addExecutable("async_stdin", "examples/async_stdin.zig");
+    b.use_stage1 = true;
+    bin_async_stdin.setBuildMode(mode);
+    bin_async_stdin.setTarget(target);
+    bin_async_stdin.addPackage(pkg_libev);
+    bin_async_stdin.linkLibC();
+    bin_async_stdin.linkSystemLibrary("ev");
+    bin_async_stdin.install();
 }
