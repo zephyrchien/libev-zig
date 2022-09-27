@@ -17,6 +17,10 @@ const Helper = struct {
         ?*c.struct_ev_loop, ?*T, c_int
     ) callconv(.C) void;
 
+    const frame_wrapper = struct {
+        frame: anyframe
+    };
+
     fn makecb(comptime cb: cb_t) native_cb_t {
         const F =  struct {
             fn callback(
@@ -34,7 +38,11 @@ const Helper = struct {
 
     fn cbResume(w: *Watcher, _: Event) void {
         w.stop();
-        resume @ptrCast(*anyframe, w.userData());
+        var frame = @ptrCast(
+            *Helper.frame_wrapper,
+            @alignCast(8, w.userData())
+        ).frame;
+        resume frame;
     }
 
     fn init(handle: *T) void {
@@ -71,7 +79,8 @@ const IoSpec = struct {
         handle.fd = fd;
         handle.events = hint;
         return Watcher {
-            .loop = loop.native(),
+            // wtf with stage1
+            .loop = @ptrCast(*c.struct_ev_loop, loop.native()),
             .handle = handle,
         };
     }
@@ -101,7 +110,8 @@ const TimerSpec = struct {
         handle.at = after;
         handle.repeat = repeat;
         return Watcher {
-            .loop = loop.native(),
+            // wtf with stage1
+            .loop = @ptrCast(*c.struct_ev_loop, loop.native()),
             .handle = handle,
         };
     }
@@ -215,7 +225,8 @@ const Watcher = extern struct {
     
     pub fn wait(self: *Self) callconv(.Async) void {
         suspend {
-            self.setUserData(@frame());
+            var frame = Helper.frame_wrapper{.frame = @frame()};
+            self.setUserData(&frame);
             self.setCallback(Helper.cbResume);
         }
         self.setUserData(null);

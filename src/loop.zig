@@ -25,7 +25,7 @@ pub const Loop = struct {
         };
 
         if (c.ev_default_loop(hint)) |loop| {
-            return .{ .loop = loop };
+            return Self { .loop = loop };
         } else {
             return null;
         }
@@ -39,7 +39,7 @@ pub const Loop = struct {
         };
 
         if (c.ev_loop_new(hint)) |loop| {
-            return . { .loop = loop };
+            return Self { .loop = loop };
         } else {
             return null;
         }
@@ -55,8 +55,8 @@ pub const Loop = struct {
         c.ev_break(self.loop, hint);
     }
 
-    pub fn blockOn(self: Self, comptime f: anyframe->void) void {
-        self.run(.{});
+    pub fn blockOn(self: Self, f: anyframe->void) void {
+        _ = self.run(.{});
         nosuspend await f;
     }
 
