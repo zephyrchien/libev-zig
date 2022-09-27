@@ -16,11 +16,11 @@ pub fn versionMinor() c_int {
     return c.ev_version_minor();
 }
 
-pub fn now(l: loop.Loop) c.ev_tstamp {
+pub fn now(l: loop.Loop) f64 {
     return c.ev_now(l.native());
 }
 
-pub fn delay(interval: c.ev_tstamp) void {
+pub fn delay(interval: f64) void {
     c.ev_sleep(interval);
 }
 

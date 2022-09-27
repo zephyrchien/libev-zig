@@ -45,9 +45,9 @@ pub const Loop = struct {
         }
     }
 
-    pub fn run(self: Self, comptime f: Run) bool {
+    pub fn run(self: Self, comptime f: Run) void {
         const hint = comptime flag.Run.into_int(f);
-        return c.ev_run(self.loop, hint) != 0;
+        if(c.ev_run(self.loop, hint) != 0) unreachable;
     }
 
     pub fn stop(self: Self, comptime f: Break) void {
@@ -56,7 +56,7 @@ pub const Loop = struct {
     }
 
     pub fn blockOn(self: Self, f: anyframe->void) void {
-        _ = self.run(.{});
+        self.run(.{});
         nosuspend await f;
     }
 
@@ -84,8 +84,7 @@ pub const Loop = struct {
         return flag.Backend.from_int(c.ev_backend(self.loop));
     }
 
-    // TODO
-    pub fn now(self: Self) c.ev_tstamp {
+    pub fn now(self: Self) f64 {
         return c.ev_now(self.loop);
     }
 
@@ -109,13 +108,11 @@ pub const Loop = struct {
         c.ev_unref(self.loop);
     }
 
-    // TODO
-    pub fn setIoCollectInterval(self: Self, intv: c.ev_tstamp) void {
+    pub fn setIoCollectInterval(self: Self, intv: f64) void {
         c.ev_set_io_collect_interval(self.loop, intv);
     }
 
-    // TODO
-    pub fn setTimeoutCollectInterval(self: Self, intv: c.ev_tstamp) void {
+    pub fn setTimeoutCollectInterval(self: Self, intv: f64) void {
         c.ev_set_timeout_collect_interval(self.loop, intv);
     }
 
@@ -126,10 +123,6 @@ pub const Loop = struct {
     pub fn pendingCount(self: Self) usize {
         return c.ev_pending_count(self.loop);
     }
-
-    // TODO
-    // ev_set_invoke_pending_cb
-    // ev_set_loop_release_cb
 
     pub fn setUserData(self: Self, data: *anyopaque) void {
         c.ev_set_userdata(self.loop, data);

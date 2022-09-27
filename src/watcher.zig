@@ -40,7 +40,7 @@ const Helper = struct {
         w.stop();
         var frame = @ptrCast(
             *Helper.frame_wrapper,
-            @alignCast(8, w.userData())
+            @alignCast(@sizeOf(*frame_wrapper), w.userData())
         ).frame;
         resume frame;
     }
@@ -103,7 +103,7 @@ const IoSpec = struct {
     }
 };
 const TimerSpec = struct {
-    pub fn new(loop: Loop, after: c.ev_tstamp, repeat: c.ev_tstamp) Watcher {
+    pub fn new(loop: Loop, after: f64, repeat: f64) Watcher {
         var handle: T = undefined;
         Helper.init(&handle);
     
@@ -116,7 +116,7 @@ const TimerSpec = struct {
         };
     }
 
-    pub fn set(self: *Watcher, after: c.ev_tstamp, repeat: c.ev_tstamp) void {
+    pub fn set(self: *Watcher, after: f64, repeat: f64) void {
         Helper.freezeOn(self);
         defer Helper.freezeOff(self);
 
@@ -128,7 +128,7 @@ const TimerSpec = struct {
         c.ev_timer_again(self.asSpecWatcher());
     }
 
-    pub fn remaining(self: *Watcher) c.ev_tstamp {
+    pub fn remaining(self: *Watcher) f64 {
         return c.ev_timer_remaining(self.loop, self.asSpecWatcher());
     }
 };
@@ -224,6 +224,7 @@ const Watcher = extern struct {
     }
     
     pub fn wait(self: *Self) callconv(.Async) void {
+        self.start();
         suspend {
             var frame = Helper.frame_wrapper{.frame = @frame()};
             self.setUserData(&frame);

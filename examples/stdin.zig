@@ -15,5 +15,5 @@ pub fn main() !void {
     var io = Io.new(loop, 0, .{.Read = true});
     io.setCallback(cb);
     io.start();
-    _ = loop.run(.{});
+    loop.run(.{});
 }

@@ -15,5 +15,5 @@ pub fn main() !void {
     var timer = Timer.new(loop, 1.0, 0.0);
     timer.setCallback(cb);
     timer.start();
-    _ = loop.run(.{});
+    loop.run(.{});
 }

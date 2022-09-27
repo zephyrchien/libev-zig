@@ -12,7 +12,6 @@ pub fn main() !void {
 }
 
 fn handle(timer: *Timer) callconv(.Async) void {
-    timer.start();
     await async timer.wait();
     std.debug.print("1s timeout!\n", .{});
 }

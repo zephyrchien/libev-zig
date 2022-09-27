@@ -12,7 +12,6 @@ pub fn main() !void {
 }
 
 fn handle(io: *Io) callconv(.Async) void {
-    io.start();
     await async io.wait();
     std.debug.print("stdin is ready!\n", .{});
 }
