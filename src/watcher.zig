@@ -9,6 +9,8 @@ pub const Event = flag.Event.set_t;
 pub const Io = makeWatcher(c.struct_ev_io);
 pub const Timer = makeWatcher(c.struct_ev_timer);
 
+pub const Error = error{io};
+
 fn makeWatcher(comptime T: type) type {
 const NameSpace = struct {
 const Helper = struct {
@@ -17,8 +19,9 @@ const Helper = struct {
         ?*c.struct_ev_loop, ?*T, c_int
     ) callconv(.C) void;
 
-    const frame_wrapper = struct {
-        frame: anyframe
+    const future_t = struct {
+        frame: anyframe,
+        result: Error!void,
     };
 
     fn makecb(comptime cb: cb_t) native_cb_t {
@@ -36,13 +39,16 @@ const Helper = struct {
         return F.callback;
     }
 
-    fn cbResume(w: *Watcher, _: Event) void {
+    fn cbResume(w: *Watcher, event: Event) void {
         w.stop();
-        var frame = @ptrCast(
-            *Helper.frame_wrapper,
-            @alignCast(@sizeOf(*frame_wrapper), w.userData())
-        ).frame;
-        resume frame;
+
+        const ptr = @ptrCast(
+            *Helper.future_t,
+            @alignCast(@sizeOf(*future_t), w.userData()));
+        
+        if (event.Error) ptr.result = Error.io;
+
+        resume ptr.frame;
     }
 
     fn init(handle: *T) void {
@@ -223,14 +229,16 @@ const Watcher = extern struct {
         }
     }
     
-    pub fn wait(self: *Self) callconv(.Async) void {
+    pub fn wait(self: *Self) callconv(.Async) Error!void {
         self.start();
+        var frame: Helper.future_t = undefined;
         suspend {
-            var frame = Helper.frame_wrapper{.frame = @frame()};
+            frame = .{.frame = @frame(), .result = .{} };
             self.setUserData(&frame);
             self.setCallback(Helper.cbResume);
         }
         self.setUserData(null);
+        return frame.result;
     }
 
     pub fn isActive(self: *const Self) bool {
