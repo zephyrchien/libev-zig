@@ -51,5 +51,5 @@ pub fn build(b: *Builder) !void {
     bin(b, &mode, &target, &.{"version", "stdin", "timer"});
 
     // bin, async(not availabe in self-hosting compiler)
-    if (USE_STAGE1) bin(b, &mode, &target, &.{"async_stdin"});
+    if (USE_STAGE1) bin(b, &mode, &target, &.{"async_stdin", "async_timer"});
 }
