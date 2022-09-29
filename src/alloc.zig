@@ -36,7 +36,7 @@ const Helper = struct {
             return @intToPtr(*u8, @ptrToInt(new_slice.ptr) + @sizeOf(usize));
         }
         const head_ptr = @intToPtr([*]u8, @ptrToInt(ptr) - @sizeOf(usize));
-        const size_ptr = @ptrCast(*usize, head_ptr);
+        const size_ptr = @ptrCast(*usize, @alignCast(@sizeOf(usize), head_ptr));
         const old_size = size_ptr.*;
         // free
         if (size == 0) {
@@ -44,8 +44,10 @@ const Helper = struct {
             return null;
         }
         // resize
-        const new_re_slice = mem.realloc(head_ptr[0..old_size], new_size) catch return null;
-        @ptrCast(*usize, new_re_slice.ptr).* = new_size;
-        return @intToPtr(*u8, @ptrToInt(new_re_slice.ptr) + @sizeOf(usize));
+        const new_slice = mem.reallocAdvanced(
+            head_ptr[0..old_size],
+            @sizeOf(usize), new_size, .exact) catch return null;
+        @ptrCast(*usize, new_slice.ptr).* = new_size;
+        return @intToPtr(*u8, @ptrToInt(new_slice.ptr) + @sizeOf(usize));
     }
 };

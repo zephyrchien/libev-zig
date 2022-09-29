@@ -44,7 +44,7 @@ const Helper = struct {
 
         const ptr = @ptrCast(
             *Helper.future_t,
-            @alignCast(@sizeOf(*future_t), w.userData()));
+            @alignCast(@alignOf(future_t), w.userData()));
         
         if (event.Error) ptr.result = Error.io;
 
