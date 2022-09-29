@@ -28,7 +28,7 @@ fn bin(b: *Builder, mode: *const Mode, target: *const CrossTarget,
     }
 }
 
-const USE_STAGE1 = true;
+const USE_STAGE1 = false;
 pub fn build(b: *Builder) !void {
     const mode = b.standardReleaseOptions();
     const target = b.standardTargetOptions(.{});
