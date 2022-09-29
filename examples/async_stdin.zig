@@ -12,6 +12,6 @@ pub fn main() !void {
 }
 
 fn handle(io: *Io) callconv(.Async) void {
-    await async io.wait() catch unreachable;
+    await async io.startAndWait() catch unreachable;
     std.debug.print("stdin is ready!\n", .{});
 }

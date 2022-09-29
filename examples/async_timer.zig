@@ -12,6 +12,6 @@ pub fn main() !void {
 }
 
 fn handle(timer: *Timer) callconv(.Async) void {
-    await async timer.wait() catch unreachable;
+    await async timer.startAndWait() catch unreachable;
     std.debug.print("1s timeout!\n", .{});
 }

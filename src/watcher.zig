@@ -230,7 +230,6 @@ const Watcher = extern struct {
     }
     
     pub fn wait(self: *Self) callconv(.Async) Error!void {
-        self.start();
         var frame: Helper.future_t = undefined;
         suspend {
             frame = .{.frame = @frame(), .result = .{} };
@@ -239,6 +238,11 @@ const Watcher = extern struct {
         }
         self.setUserData(null);
         return frame.result;
+    }
+
+    pub fn startAndWait(self: *Self) callconv(.Async) Error!void {
+        self.start();
+        return await async self.wait();
     }
 
     pub fn isActive(self: *const Self) bool {
