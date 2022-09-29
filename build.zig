@@ -52,4 +52,7 @@ pub fn build(b: *Builder) !void {
 
     // bin, async(not availabe in self-hosting compiler)
     if (USE_STAGE1) bin(b, &mode, &target, &.{"async_stdin", "async_timer"});
+
+    // bin, custom alloc
+    bin(b, &mode, &target, &.{"stdin_alloc"});
 }
